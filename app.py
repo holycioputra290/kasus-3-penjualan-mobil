@@ -5,7 +5,7 @@ import streamlit as st
 
 # 1. Konfigurasi Halaman
 st.set_page_config(
-    page_title='Car Sales Analytics | Apple UI',
+    page_title='Car Industry Analytics 2025 | Apple UI',
     page_icon='🚗',
     layout='wide',
     initial_sidebar_state='expanded',
@@ -122,78 +122,63 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 4. Load Data Kasus 3 (Mobil)
+# 4. Load Data Kasus 3 (Mendukung Cars Datasets 2025.csv & dataset_penjualan_mobil.csv)
 @st.cache_data
 def load_data():
-    data = pd.read_csv('dataset_penjualan_mobil.csv')
-    data['Tanggal'] = pd.to_datetime(data['Tanggal'])
-    return data.sort_values('Tanggal')
+    try:
+        data = pd.read_csv('Cars Datasets 2025.csv', encoding='latin1')
+    except FileNotFoundError:
+        data = pd.read_csv('dataset_penjualan_mobil.csv', encoding='latin1')
+    return data
 
 df = load_data()
 
 # 5. Header Section
 st.markdown(
-    '<div class="apple-header">Dashboard Penjualan Mobil Terlaris di Indonesia</div>',
+    '<div class="apple-header">Dashboard Analisis Industri Mobil 2025</div>',
     unsafe_allow_html=True,
 )
 st.markdown(
-    '<div class="apple-subtitle">Analisis Operasional & Tren Industri Otomotif Mobil • Bedah Kasus 3</div>',
+    '<div class="apple-subtitle">Eksplorasi Spesifikasi & Performa Mobil Global • Bedah Kasus 3</div>',
     unsafe_allow_html=True,
 )
 
 # 6. Sidebar Filter
 st.sidebar.markdown('### 🎛️ Filter Data')
 
-min_date = df['Tanggal'].min().date()
-max_date = df['Tanggal'].max().date()
-
-date_range = st.sidebar.date_input(
-    'Rentang Tanggal',
-    value=(min_date, max_date),
-    min_value=min_date,
-    max_value=max_date,
+list_company = sorted(df['Company Names'].dropna().astype(str).unique().tolist())
+selected_company = st.sidebar.multiselect(
+    'Pilih Pabrikan (Brand):',
+    options=list_company,
+    default=list_company[:10] if len(list_company) > 10 else list_company,
 )
 
-selected_kategori = st.sidebar.multiselect(
-    'Kategori Mobil',
-    options=df['Kategori'].unique(),
-    default=df['Kategori'].unique(),
+list_fuel = sorted(df['Fuel Types'].dropna().astype(str).unique().tolist())
+selected_fuel = st.sidebar.multiselect(
+    'Tipe Bahan Bakar:',
+    options=list_fuel,
+    default=list_fuel,
 )
 
-selected_produk = st.sidebar.multiselect(
-    'Pilih Model Mobil',
-    options=df[df['Kategori'].isin(selected_kategori)]['Produk'].unique(),
-    default=df[df['Kategori'].isin(selected_kategori)]['Produk'].unique(),
-)
-
-# Terapkan Filter
-if len(date_range) == 2:
-    start_d, end_d = date_range
-    filtered_df = df[
-        (df['Tanggal'].dt.date >= start_d)
-        & (df['Tanggal'].dt.date <= end_d)
-        & (df['Kategori'].isin(selected_kategori))
-        & (df['Produk'].isin(selected_produk))
-    ]
-else:
-    filtered_df = df[
-        (df['Kategori'].isin(selected_kategori))
-        & (df['Produk'].isin(selected_produk))
-    ]
+# Filtering Data
+filtered_df = df[
+    (df['Company Names'].astype(str).isin(selected_company))
+    & (df['Fuel Types'].astype(str).isin(selected_fuel))
+]
 
 # 7. Apple KPI Cards Row
 col1, col2, col3, col4 = st.columns(4)
 
-total_revenue = filtered_df['Total Penjualan (Rp)'].sum()
-total_units = filtered_df['Jumlah Terjual'].sum()
-avg_transaction = filtered_df['Total Penjualan (Rp)'].mean() if len(filtered_df) > 0 else 0
-total_tx = len(filtered_df)
+total_models = len(filtered_df)
+total_brands = filtered_df['Company Names'].nunique()
+unique_fuels = filtered_df['Fuel Types'].nunique()
+avg_seats = filtered_df['Seats'].mean() if len(filtered_df) > 0 and 'Seats' in filtered_df.columns else 0
 
 col1.markdown(
     f"""
     <div class="apple-card">
-        <div class="metric-label">Total Pendapatan</div>
-        <div class="metric-value">Rp {total_revenue/1e12:,.2f}T</div>
+        <div class="metric-label">Total Model Mobil</div>
+        <div class="metric-value">{total_models:,}</div>
     </div>
 """,
     unsafe_allow_html=True,
@@ -202,8 +187,8 @@ col1.markdown(
 col2.markdown(
     f"""
     <div class="apple-card">
-        <div class="metric-label">Total Mobil Terjual</div>
-        <div class="metric-value">{total_units:,} Unit</div>
+        <div class="metric-label">Jumlah Pabrikan</div>
+        <div class="metric-value">{total_brands:,} Brand</div>
     </div>
 """,
     unsafe_allow_html=True,
@@ -212,8 +197,8 @@ col2.markdown(
 col3.markdown(
     f"""
     <div class="apple-card">
-        <div class="metric-label">Rata-rata Transaksi</div>
-        <div class="metric-value">Rp {avg_transaction/1e6:,.1f}Jt</div>
+        <div class="metric-label">Variasi Bahan Bakar</div>
+        <div class="metric-value">{unique_fuels} Tipe</div>
     </div>
 """,
     unsafe_allow_html=True,
@@ -222,8 +207,8 @@ col3.markdown(
 col4.markdown(
     f"""
     <div class="apple-card">
-        <div class="metric-label">Jumlah Transaksi</div>
-        <div class="metric-value">{total_tx:,}</div>
+        <div class="metric-label">Rata-rata Tempat Duduk</div>
+        <div class="metric-value">{avg_seats:.1f} Seats</div>
     </div>
 """,
     unsafe_allow_html=True,
@@ -236,40 +221,46 @@ row1_col1, row1_col2 = st.columns([1.6, 1])
 
 with row1_col1:
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    st.markdown('<div class="chart-title">📈 Tren Penjualan Mobil Harian</div>', unsafe_allow_html=True)
+    st.markdown('<div class="chart-title">📊 Top Pabrikan dengan Model Terbanyak</div>', unsafe_allow_html=True)
 
-    trend_df = (
-        filtered_df.groupby('Tanggal')['Total Penjualan (Rp)']
-        .sum()
-        .reset_index()
+    top_brands = (
+        filtered_df['Company Names'].value_counts().nlargest(10).reset_index()
     )
+    top_brands.columns = ['Pabrikan', 'Jumlah Model']
 
-    fig_line = px.line(
-        trend_df,
-        x='Tanggal',
-        y='Total Penjualan (Rp)',
-        labels={'Total Penjualan (Rp)': 'Pendapatan (Rp)'},
+    fig_bar = px.bar(
+        top_brands,
+        x='Jumlah Model',
+        y='Pabrikan',
+        orientation='h',
+        color='Jumlah Model',
+        color_continuous_scale=['#64D2FF', '#0071E3'],
+        text_auto=True,
     )
-    fig_line.update_traces(line_color='#0071E3', line_width=3, line_shape='spline')
-    fig_line.update_layout(
+    fig_bar.update_traces(marker_cornerradius=6)
+    fig_bar.update_layout(
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font=dict(color=text_primary, size=11),
         margin=dict(l=10, r=10, t=10, b=10),
-        xaxis=dict(showgrid=False, title='', tickfont=dict(color=text_secondary, size=11)),
-        yaxis=dict(showgrid=True, gridcolor=grid_color, title='', tickfont=dict(color=text_secondary, size=11)),
+        coloraxis_showscale=False,
+        yaxis=dict(autorange='reversed', title='', tickfont=dict(color=text_primary, size=11)),
+        xaxis=dict(showgrid=True, gridcolor=grid_color, title='', tickfont=dict(color=text_secondary, size=11))
     )
-    st.plotly_chart(fig_line, use_container_width=True)
+    st.plotly_chart(fig_bar, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 with row1_col2:
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    st.markdown('<div class="chart-title">🍕 Proporsi Kategori Mobil</div>', unsafe_allow_html=True)
+    st.markdown('<div class="chart-title">🍕 Proporsi Tipe Bahan Bakar</div>', unsafe_allow_html=True)
+
+    fuel_df = filtered_df['Fuel Types'].value_counts().nlargest(6).reset_index()
+    fuel_df.columns = ['Bahan Bakar', 'Jumlah']
 
     fig_pie = px.pie(
-        filtered_df,
-        names='Kategori',
-        values='Total Penjualan (Rp)',
+        fuel_df,
+        names='Bahan Bakar',
+        values='Jumlah',
         hole=0.65,
         color_discrete_sequence=APPLE_COLORS,
     )
@@ -293,59 +284,52 @@ row2_col1, row2_col2 = st.columns(2)
 
 with row2_col1:
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    st.markdown('<div class="chart-title">📊 Total Terjual per Model Mobil</div>', unsafe_allow_html=True)
-
-    prod_df = (
-        filtered_df.groupby(['Produk', 'Kategori'])['Jumlah Terjual']
-        .sum()
-        .reset_index()
-    )
-
-    fig_bar = px.bar(
-        prod_df,
-        x='Produk',
-        y='Jumlah Terjual',
-        color='Kategori',
-        color_discrete_sequence=APPLE_COLORS,
-        text_auto=True,
-    )
-    fig_bar.update_traces(marker_cornerradius=8)
-    fig_bar.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color=text_primary, size=11),
-        margin=dict(l=10, r=10, t=10, b=10),
-        xaxis=dict(showgrid=False, title='', tickfont=dict(color=text_primary, size=11)),
-        yaxis=dict(showgrid=True, gridcolor=grid_color, title='', tickfont=dict(color=text_secondary, size=11)),
-        showlegend=False,
-    )
-    st.plotly_chart(fig_bar, use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-with row2_col2:
-    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    st.markdown('<div class="chart-title">🏷️ Distribusi Harga Mobil</div>', unsafe_allow_html=True)
+    st.markdown('<div class="chart-title">💺 Distribusi Kapasitas Tempat Duduk (Seats)</div>', unsafe_allow_html=True)
 
     fig_hist = px.histogram(
         filtered_df,
-        x='Harga (Rp)',
-        color='Kategori',
-        nbins=25,
-        color_discrete_sequence=APPLE_COLORS,
-        opacity=0.85,
+        x='Seats',
+        color_discrete_sequence=['#34C759'],
+        text_auto=True,
     )
     fig_hist.update_layout(
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font=dict(color=text_primary, size=11),
         margin=dict(l=10, r=10, t=10, b=10),
-        xaxis=dict(showgrid=False, title='', tickfont=dict(color=text_secondary, size=11)),
-        yaxis=dict(showgrid=True, gridcolor=grid_color, title='', tickfont=dict(color=text_secondary, size=11)),
+        xaxis=dict(showgrid=False, title='Jumlah Seats', tickfont=dict(color=text_primary, size=11)),
+        yaxis=dict(showgrid=True, gridcolor=grid_color, title='Jumlah Model', tickfont=dict(color=text_secondary, size=11)),
         showlegend=False,
     )
     st.plotly_chart(fig_hist, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
+with row2_col2:
+    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+    st.markdown('<div class="chart-title">⚡ Tipe Mesin Terbanyak</div>', unsafe_allow_html=True)
+
+    engine_df = filtered_df['Engines'].value_counts().nlargest(8).reset_index()
+    engine_df.columns = ['Tipe Mesin', 'Jumlah']
+
+    fig_engine = px.bar(
+        engine_df,
+        x='Tipe Mesin',
+        y='Jumlah',
+        color_discrete_sequence=['#AF52DE'],
+        text_auto=True,
+    )
+    fig_engine.update_traces(marker_cornerradius=8)
+    fig_engine.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color=text_primary, size=11),
+        margin=dict(l=10, r=10, t=10, b=10),
+        xaxis=dict(showgrid=False, title='', tickfont=dict(color=text_primary, size=10)),
+        yaxis=dict(showgrid=True, gridcolor=grid_color, title='', tickfont=dict(color=text_secondary, size=11))
+    )
+    st.plotly_chart(fig_engine, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
 # 10. Tabel Data Expander
-with st.expander('📋 Detail Data Penjualan Mobil (Terfilter)'):
+with st.expander('📋 Detail Spesifikasi Mobil Global 2025 (Terfilter)'):
     st.dataframe(filtered_df, use_container_width=True)
