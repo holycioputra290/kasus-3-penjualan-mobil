@@ -1,6 +1,6 @@
 # 🚗 Dashboard Penjualan Mobil Terlaris di Dunia (Kasus 3)
 
-Aplikasi web dashboard interaktif berbasis **Streamlit** dan **Plotly** dengan antarmuka **Apple UI / macOS Style** serta dukungan **Light/Dark Mode** untuk menganalisis data penjualan mobil (`dataset_penjualan_mobil.csv`).
+Aplikasi web dashboard interaktif berbasis **Streamlit** dan **Plotly** dengan antarmuka **Apple UI / macOS Style** serta dukungan **Light/Dark Mode** untuk menganalisis data penjualan mobil (`Cars Datasets 2025`).
 
 ## 🛠️ Fitur Utama
 - **Theme Switcher:** Bebas memilih Mode Terang (Light Mode ☀️) atau Mode Gelap (Dark Mode 🌙).
@@ -13,4 +13,4 @@ Aplikasi web dashboard interaktif berbasis **Streamlit** dan **Plotly** dengan a
   4. Distribusi Harga Mobil
 
 ## 🌐 Live Dashboard
-[Link Streamlit Cloud akan dimasukkan di sini]
+https://kasus-3-penjualan-mobil-anrcz6vfgn8uivswuymlay.streamlit.app/
